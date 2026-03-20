@@ -1,0 +1,35 @@
+# Web framework
+flask==3.0.3
+flask-cors==4.0.1
+flask-sqlalchemy==3.1.1
+flask-migrate==4.0.7
+werkzeug==3.0.4
+
+# Database
+pymysql==1.1.1
+cryptography==43.0.1
+
+# Configuration
+python-dotenv==1.0.1
+
+# LangChain
+langchain==0.2.16
+langchain-core==0.2.40
+langchain-community==0.2.16
+langchain-text-splitters==0.2.4
+
+# HuggingFace (local embeddings + LLM — no API key needed)
+sentence-transformers==3.3.1
+transformers==4.47.1
+torch==2.5.1
+accelerate==1.2.1
+faiss-cpu==1.8.0.post1
+
+# PDF loading
+pypdf==4.3.1
+
+# Serialization
+marshmallow==3.22.0
+
+# Production server
+gunicorn==22.0.0

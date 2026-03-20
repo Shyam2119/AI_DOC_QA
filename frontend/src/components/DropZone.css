@@ -1,0 +1,168 @@
+.dropzone-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.dropzone-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.dropzone-title {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.ready-badge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  background: var(--green-dim);
+  color: var(--green);
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-family: var(--font-mono);
+}
+
+.dropzone {
+  border: 1.5px dashed var(--border);
+  border-radius: var(--radius-md);
+  padding: 18px 16px;
+  cursor: pointer;
+  transition: border-color var(--transition), background var(--transition);
+  background: var(--bg-2);
+}
+
+.dropzone:hover { border-color: var(--accent); background: var(--accent-dim); }
+.dropzone.drag-active { border-color: var(--accent); background: var(--accent-dim); }
+.dropzone.uploading { cursor: default; opacity: 0.8; }
+
+.drop-idle, .drop-uploading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+}
+
+.drop-icon {
+  color: var(--text-muted);
+  transition: color var(--transition);
+}
+.drop-icon.active, .dropzone:hover .drop-icon { color: var(--accent); }
+
+.drop-text {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.drop-sub {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+
+.progress-bar {
+  width: 100%;
+  height: 3px;
+  background: var(--bg-4);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.3s ease;
+}
+
+.upload-error {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: var(--red);
+  background: var(--red-dim);
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+}
+
+.doc-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.doc-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: var(--bg-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  min-width: 0;
+}
+
+.doc-item.ready { border-color: var(--green-dim); }
+.doc-item.error { border-color: var(--red-dim); background: var(--red-dim); }
+
+.doc-file-icon { color: var(--text-muted); flex-shrink: 0; }
+
+.doc-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.doc-name {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.doc-meta {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+
+.doc-status-icon { flex-shrink: 0; }
+.doc-status-icon.processing { color: var(--amber); }
+.doc-status-icon.ready { color: var(--green); }
+.doc-status-icon.error { color: var(--red); }
+
+.doc-delete-btn {
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text-muted);
+  opacity: 0;
+  transition: opacity var(--transition), color var(--transition), background var(--transition);
+}
+
+.doc-item:hover .doc-delete-btn { opacity: 1; }
+.doc-delete-btn:hover { background: var(--red-dim); color: var(--red); }
+
+.doc-empty-hint {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 4px 0;
+}
+
+.spin {
+  animation: spin 0.9s linear infinite;
+}
