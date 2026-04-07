@@ -2,8 +2,7 @@ services:
   - type: web
     name: docmind-backend
     runtime: docker
-    dockerfilePath: ./backend/Dockerfile
-    dockerContext: ./backend
+    rootDir: backend
     envVars:
       - key: OPENAI_API_KEY
         sync: false
@@ -25,8 +24,7 @@ services:
   - type: web
     name: docmind-frontend
     runtime: docker
-    dockerfilePath: ./frontend/Dockerfile
-    dockerContext: ./frontend
+    rootDir: frontend
     envVars:
       - key: REACT_APP_API_URL
         sync: false
