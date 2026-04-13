@@ -34,16 +34,29 @@ def create_app():
             f"mysql+pymysql://{_db_user}:{_db_pass}@{_db_host}:{_db_port}/{_db_name}"
         )
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-    app.config["UPLOAD_FOLDER"] = os.getenv("UPLOAD_FOLDER", "/app/data/uploads" if os.getenv("RENDER") else "uploads")
+    app.config["UPLOAD_FOLDER"] = os.getenv("UPLOAD_FOLDER", "uploads")
     app.config["MAX_CONTENT_LENGTH"] = int(os.getenv("MAX_CONTENT_LENGTH", 52428800))
-    app.config["VECTOR_STORE_PATH"] = os.getenv("VECTOR_STORE_PATH", "/app/data/vector_stores" if os.getenv("RENDER") else "vector_stores")
+    app.config["VECTOR_STORE_PATH"] = os.getenv("VECTOR_STORE_PATH", "vector_stores")
 
     # Ensure directories exist
     os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
     os.makedirs(app.config["VECTOR_STORE_PATH"], exist_ok=True)
 
     # Extensions
+    db_args = {}
+    if os.getenv("DB_SSL") == "true":
+        db_args["connect_args"] = {
+            "ssl": {
+                "ca": os.getenv("DB_SSL_CA", "/etc/ssl/certs/ca-certificates.crt")
+            }
+        }
+
     db.init_app(app)
+    # Check if we need to apply connect_args to the engine
+    if db_args:
+        with app.app_context():
+            app.config["SQLALCHEMY_ENGINE_OPTIONS"] = db_args
+
     migrate.init_app(app, db)
     CORS(app, origins=[os.getenv("FRONTEND_URL", "http://localhost:3000")], supports_credentials=True)
 
