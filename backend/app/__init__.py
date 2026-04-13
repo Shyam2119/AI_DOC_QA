@@ -18,19 +18,25 @@ def create_app():
     # Config
     app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "dev-secret-key")
 
-    _db_user = os.getenv("DB_USER", "root")
-    _db_pass = quote_plus(os.getenv("DB_PASSWORD", ""))   # URL-encode special chars
-    _db_host = os.getenv("DB_HOST", "localhost")          # localhost works with Windows MySQL named pipe
-    _db_port = os.getenv("DB_PORT", "3306")
-    _db_name = os.getenv("DB_NAME", "ai_doc_qa")
-
-    app.config["SQLALCHEMY_DATABASE_URI"] = (
-        f"mysql+pymysql://{_db_user}:{_db_pass}@{_db_host}:{_db_port}/{_db_name}"
-    )
+    # Database Config
+    db_url = os.getenv("DATABASE_URL")
+    if db_url:
+        if db_url.startswith("postgres://"):
+            db_url = db_url.replace("postgres://", "postgresql://", 1)
+        app.config["SQLALCHEMY_DATABASE_URI"] = db_url
+    else:
+        _db_user = os.getenv("DB_USER", "root")
+        _db_pass = quote_plus(os.getenv("DB_PASSWORD", ""))   # URL-encode special chars
+        _db_host = os.getenv("DB_HOST", "localhost")          # localhost works with Windows MySQL named pipe
+        _db_port = os.getenv("DB_PORT", "3306")
+        _db_name = os.getenv("DB_NAME", "ai_doc_qa")
+        app.config["SQLALCHEMY_DATABASE_URI"] = (
+            f"mysql+pymysql://{_db_user}:{_db_pass}@{_db_host}:{_db_port}/{_db_name}"
+        )
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-    app.config["UPLOAD_FOLDER"] = os.getenv("UPLOAD_FOLDER", "uploads")
+    app.config["UPLOAD_FOLDER"] = os.getenv("UPLOAD_FOLDER", "/app/data/uploads" if os.getenv("RENDER") else "uploads")
     app.config["MAX_CONTENT_LENGTH"] = int(os.getenv("MAX_CONTENT_LENGTH", 52428800))
-    app.config["VECTOR_STORE_PATH"] = os.getenv("VECTOR_STORE_PATH", "vector_stores")
+    app.config["VECTOR_STORE_PATH"] = os.getenv("VECTOR_STORE_PATH", "/app/data/vector_stores" if os.getenv("RENDER") else "vector_stores")
 
     # Ensure directories exist
     os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)

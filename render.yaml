@@ -3,32 +3,43 @@ services:
     name: docmind-backend
     runtime: docker
     rootDir: backend
-    dockerfilePath: ./backend/Dockerfile
-    dockerContext: ./backend
+    dockerfilePath: Dockerfile
+    # Standard plan is recommended due to HuggingFace model memory footprint (>512MB RAM)
+    plan: standard
+    disk:
+      name: docmind-data
+      mountPath: /app/data
+      sizeGB: 1
     envVars:
       - key: OPENAI_API_KEY
         sync: false
-      - key: DB_HOST
-        sync: false
-      - key: DB_PORT
-        value: "3306"
-      - key: DB_NAME
-        value: ai_doc_qa
-      - key: DB_USER
-        sync: false
-      - key: DB_PASSWORD
-        sync: false
+      - key: DATABASE_URL
+        fromDatabase:
+          name: docmind-db
+          property: connectionString
       - key: SECRET_KEY
         generateValue: true
       - key: FRONTEND_URL
-        sync: false
+        fromService:
+          type: web
+          name: docmind-frontend
+          envVarKey: RENDER_EXTERNAL_URL
 
   - type: web
     name: docmind-frontend
     runtime: docker
     rootDir: frontend
-    dockerfilePath: ./frontend/Dockerfile
-    dockerContext: ./frontend
+    dockerfilePath: Dockerfile
     envVars:
       - key: REACT_APP_API_URL
-        sync: false
+        fromService:
+          type: web
+          name: docmind-backend
+          envVarKey: RENDER_EXTERNAL_URL
+
+databases:
+  - name: docmind-db
+    databaseName: docmind
+    user: docmind_user
+    plan: free
+
