@@ -3,7 +3,8 @@ services:
     name: docmind-backend
     runtime: docker
     rootDir: backend
-    dockerfilePath: Dockerfile
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
     # Standard plan is recommended due to HuggingFace model memory footprint (>512MB RAM)
     plan: standard
     disk:
@@ -29,7 +30,8 @@ services:
     name: docmind-frontend
     runtime: docker
     rootDir: frontend
-    dockerfilePath: Dockerfile
+    dockerfilePath: ./frontend/Dockerfile
+    dockerContext: ./frontend
     envVars:
       - key: REACT_APP_API_URL
         fromService:
