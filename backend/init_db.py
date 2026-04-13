@@ -23,12 +23,19 @@ DB_PASSWORD = os.getenv("DB_PASSWORD", "")
 print(f"Connecting to MySQL at {DB_HOST}:{DB_PORT} as '{DB_USER}'...")
 try:
     import pymysql
+    ssl_config = None
+    if os.getenv("DB_SSL") == "true":
+        ssl_config = {
+            "ca": os.getenv("DB_SSL_CA", "/etc/ssl/certs/ca-certificates.crt")
+        }
+
     conn = pymysql.connect(
         host=DB_HOST,
         port=DB_PORT,
         user=DB_USER,
         password=DB_PASSWORD,
         charset="utf8mb4",
+        ssl=ssl_config,
     )
     cursor = conn.cursor()
     cursor.execute(
@@ -41,11 +48,12 @@ try:
     print(f"✅ Database '{DB_NAME}' is ready.")
 except Exception as e:
     print(f"❌ Could not connect to MySQL: {e}")
-    print("\nPlease check your .env file:")
+    print("\nPlease check your environment variables:")
     print(f"  DB_HOST={DB_HOST}")
     print(f"  DB_PORT={DB_PORT}")
     print(f"  DB_USER={DB_USER}")
     print(f"  DB_PASSWORD={'*' * len(DB_PASSWORD) if DB_PASSWORD else '(empty)'}")
+    print(f"  DB_SSL={os.getenv('DB_SSL', 'false')}")
     sys.exit(1)
 
 # Step 2: Create all tables via SQLAlchemy
