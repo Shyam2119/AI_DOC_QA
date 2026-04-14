@@ -69,7 +69,12 @@ def create_app():
 
     db.init_app(app)
     migrate.init_app(app, db)
-    CORS(app, origins=[os.getenv("FRONTEND_URL", "http://localhost:3000")], supports_credentials=True)
+    cors_origins = [
+        os.getenv("FRONTEND_URL", "http://localhost:3000"),
+        "https://ai-doc-qa-neon.vercel.app",
+        "https://ai-doc-20fwqy16s-shyam2119s-projects.vercel.app"
+    ]
+    CORS(app, origins=cors_origins, supports_credentials=True)
 
     # Blueprints
     from app.routes.documents import documents_bp
