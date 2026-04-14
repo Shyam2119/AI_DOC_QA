@@ -43,11 +43,26 @@ def create_app():
     os.makedirs(app.config["VECTOR_STORE_PATH"], exist_ok=True)
 
     # Extensions
-    if os.getenv("DB_SSL") == "true":
+    db_ssl_env = os.getenv("DB_SSL", "false").lower() == "true"
+    _db_host = os.getenv("DB_HOST", "localhost")
+    
+    # Auto-enable SSL for TiDB Cloud hosts
+    if not db_ssl_env and ".tidbcloud.com" in _db_host:
+        db_ssl_env = True
+
+    if db_ssl_env:
+        ca_path = os.getenv("DB_SSL_CA", "/etc/ssl/certs/ca-certificates.crt")
+        # Fallback for common CA paths
+        if not os.path.exists(ca_path):
+            for fb in ["/etc/pki/tls/certs/ca-bundle.crt", "/etc/ssl/ca-bundle.pem"]:
+                if os.path.exists(fb):
+                    ca_path = fb
+                    break
+
         app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
             "connect_args": {
                 "ssl": {
-                    "ca": os.getenv("DB_SSL_CA", "/etc/ssl/certs/ca-certificates.crt")
+                    "ca": ca_path
                 }
             }
         }

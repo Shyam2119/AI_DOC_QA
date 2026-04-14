@@ -23,11 +23,26 @@ DB_PASSWORD = os.getenv("DB_PASSWORD", "")
 print(f"Connecting to MySQL at {DB_HOST}:{DB_PORT} as '{DB_USER}'...")
 try:
     import pymysql
+    db_ssl_env = os.getenv("DB_SSL", "false").lower() == "true"
+    
+    # Auto-enable SSL for TiDB Cloud hosts
+    if not db_ssl_env and ".tidbcloud.com" in DB_HOST:
+        print(f"  [AUTO] Detected TiDB Cloud host ({DB_HOST}). Enabling SSL...")
+        db_ssl_env = True
+
     ssl_config = None
-    if os.getenv("DB_SSL") == "true":
-        ssl_config = {
-            "ca": os.getenv("DB_SSL_CA", "/etc/ssl/certs/ca-certificates.crt")
-        }
+    if db_ssl_env:
+        ca_path = os.getenv("DB_SSL_CA", "/etc/ssl/certs/ca-certificates.crt")
+        # Fallback for common CA paths if the default doesn't exist
+        if not os.path.exists(ca_path):
+            fallbacks = ["/etc/pki/tls/certs/ca-bundle.crt", "/etc/ssl/ca-bundle.pem"]
+            for fb in fallbacks:
+                if os.path.exists(fb):
+                    ca_path = fb
+                    break
+        
+        ssl_config = {"ca": ca_path}
+        print(f"  [SSL] Using CA cert: {ca_path}")
 
     conn = pymysql.connect(
         host=DB_HOST,
