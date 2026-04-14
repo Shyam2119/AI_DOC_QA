@@ -11,6 +11,8 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
+ENV HF_HOME=/app/model_cache
+RUN python download_models.py
 
 RUN mkdir -p uploads vector_stores
 
