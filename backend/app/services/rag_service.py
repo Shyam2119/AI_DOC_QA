@@ -87,11 +87,11 @@ class RAGService:
     # ── QA pipeline (extractive) ──────────────────────────────────────────────
     def _get_qa(self):
         if self._qa_pipeline is None:
-            print("[RAG] Loading QA model (roberta-base-squad2)...", flush=True)
+            print("[RAG] Loading QA model (tinyroberta-squad2)...", flush=True)
             from transformers import pipeline as hf_pipeline
             self._qa_pipeline = hf_pipeline(
                 "question-answering",
-                model="deepset/roberta-base-squad2",
+                model="deepset/tinyroberta-squad2",
                 device=-1,
             )
             print("[RAG] ✅ QA model ready.", flush=True)

@@ -16,4 +16,4 @@ RUN mkdir -p uploads vector_stores
 
 EXPOSE 5000
 
-CMD ["sh", "-c", "python init_db.py && gunicorn -w 2 -b 0.0.0.0:5000 'run:app'"]
+CMD ["sh", "-c", "python init_db.py && gunicorn -w 1 --threads 2 --timeout 120 -b 0.0.0.0:5000 'run:app'"]

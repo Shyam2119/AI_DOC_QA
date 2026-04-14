@@ -82,18 +82,4 @@ def create_app():
     app.register_blueprint(chat_bp, url_prefix="/api/chat")
     app.register_blueprint(health_bp, url_prefix="/api")
 
-    # Pre-warm embedding model in background so first PDF upload is fast
-    import threading
-    def _prewarm():
-        try:
-            print("[STARTUP] Pre-loading embedding model...", flush=True)
-            from app.services.rag_service import get_rag_service
-            get_rag_service()
-            print("[STARTUP] ✅ Embedding model ready.", flush=True)
-        except Exception as e:
-            print(f"[STARTUP] ⚠️  Pre-warm failed (non-fatal): {e}", flush=True)
-
-    t = threading.Thread(target=_prewarm, daemon=True)
-    t.start()
-
     return app
