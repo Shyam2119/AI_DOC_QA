@@ -18,6 +18,7 @@ langchain==0.2.16
 langchain-core==0.2.40
 langchain-community==0.2.16
 langchain-text-splitters==0.2.4
+langchain-huggingface==0.0.3
 
 # HuggingFace (local embeddings + LLM — no API key needed)
 sentence-transformers==3.3.1
