@@ -1,62 +1,54 @@
-version: "3.9"
-
 services:
-  db:
+  mysql:
     image: mysql:8.0
-    container_name: ai_doc_qa_db
-    restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-rootpass}
       MYSQL_DATABASE: ${DB_NAME:-ai_doc_qa}
-    ports:
-      - "3306:3306"
+      MYSQL_USER: ${DB_USER:-app_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-app_password}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root_password}
     volumes:
-      - db_data:/var/lib/mysql
+      - mysql_data:/var/lib/mysql
+    command: ["mysqld", "--default-authentication-plugin=mysql_native_password"]
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 10s
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-p${DB_ROOT_PASSWORD:-root_password}"]
+      interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 30
+    restart: unless-stopped
 
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: ai_doc_qa_backend
-    restart: unless-stopped
-    depends_on:
-      db:
-        condition: service_healthy
     environment:
-      FLASK_ENV: production
-      DB_HOST: db
-      DB_PORT: 3306
+      DB_HOST: mysql
+      DB_PORT: "3306"
       DB_NAME: ${DB_NAME:-ai_doc_qa}
-      DB_USER: ${DB_USER:-root}
-      DB_PASSWORD: ${DB_PASSWORD:-rootpass}
-      OPENAI_API_KEY: ${OPENAI_API_KEY}
-      SECRET_KEY: ${SECRET_KEY:-change-me}
-      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
-    ports:
-      - "5000:5000"
+      DB_USER: ${DB_USER:-app_user}
+      DB_PASSWORD: ${DB_PASSWORD:-app_password}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost}
+      SECRET_KEY: ${SECRET_KEY:-dev-secret-key}
+    depends_on:
+      mysql:
+        condition: service_healthy
     volumes:
       - uploads_data:/app/uploads
-      - vectors_data:/app/vector_stores
+      - vector_store_data:/app/vector_stores
+    restart: unless-stopped
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        REACT_APP_API_URL: ${REACT_APP_API_URL:-http://localhost:5000/api}
-    container_name: ai_doc_qa_frontend
-    restart: unless-stopped
+        REACT_APP_API_URL: /api
+    ports:
+      - "80:80"
     depends_on:
       - backend
-    ports:
-      - "3000:80"
+    restart: unless-stopped
 
 volumes:
-  db_data:
+  mysql_data:
   uploads_data:
-  vectors_data:
+  vector_store_data:

@@ -43,20 +43,16 @@ def create_app():
     os.makedirs(app.config["VECTOR_STORE_PATH"], exist_ok=True)
 
     # Extensions
-    db_args = {}
     if os.getenv("DB_SSL") == "true":
-        db_args["connect_args"] = {
-            "ssl": {
-                "ca": os.getenv("DB_SSL_CA", "/etc/ssl/certs/ca-certificates.crt")
+        app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+            "connect_args": {
+                "ssl": {
+                    "ca": os.getenv("DB_SSL_CA", "/etc/ssl/certs/ca-certificates.crt")
+                }
             }
         }
 
     db.init_app(app)
-    # Check if we need to apply connect_args to the engine
-    if db_args:
-        with app.app_context():
-            app.config["SQLALCHEMY_ENGINE_OPTIONS"] = db_args
-
     migrate.init_app(app, db)
     CORS(app, origins=[os.getenv("FRONTEND_URL", "http://localhost:3000")], supports_credentials=True)
 

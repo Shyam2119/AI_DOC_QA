@@ -4,7 +4,7 @@ WORKDIR /app
 
 # System deps
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    gcc libffi-dev libssl-dev \
+    gcc libffi-dev libssl-dev ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
