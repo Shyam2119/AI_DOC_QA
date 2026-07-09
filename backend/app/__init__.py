@@ -71,8 +71,9 @@ def create_app():
     migrate.init_app(app, db)
     cors_origins = [
         os.getenv("FRONTEND_URL", "http://localhost:3000"),
+        "https://qadocai.vercel.app",
         "https://ai-doc-qa-neon.vercel.app",
-        "https://ai-doc-20fwqy16s-shyam2119s-projects.vercel.app"
+        "https://ai-doc-20fwqy16s-shyam2119s-projects.vercel.app",
     ]
     CORS(app, origins=cors_origins, supports_credentials=True)
 
