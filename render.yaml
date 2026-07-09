@@ -3,35 +3,19 @@ services:
     name: docmind-backend
     runtime: docker
     rootDir: backend
-    dockerfilePath: ./backend/Dockerfile
-    dockerContext: ./backend
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
     plan: free
     envVars:
-      - key: OPENAI_API_KEY
-        sync: false
       - key: SECRET_KEY
         generateValue: true
       - key: FRONTEND_URL
-        fromService:
-          type: web
-          name: docmind-frontend
-          envVarKey: RENDER_EXTERNAL_URL
+        value: "https://your-vercel-domain.vercel.app" # Replace with your Vercel URL after deployment
+      - key: DATABASE_URL
+        sync: false # Set your database URL (PostgreSQL or MySQL) in Render dashboard
       - key: DB_SSL
         value: "true"
       - key: DB_SSL_CA
         value: "/etc/ssl/certs/ca-certificates.crt"
-
-  - type: web
-    name: docmind-frontend
-    runtime: docker
-    rootDir: frontend
-    dockerfilePath: ./frontend/Dockerfile
-    dockerContext: ./frontend
-    envVars:
-      - key: REACT_APP_API_URL
-        fromService:
-          type: web
-          name: docmind-backend
-          envVarKey: RENDER_EXTERNAL_URL
 
 
