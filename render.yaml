@@ -1,0 +1,37 @@
+services:
+  - type: web
+    name: docmind-backend
+    runtime: docker
+    rootDir: backend
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: SECRET_KEY
+        generateValue: true
+      - key: FRONTEND_URL
+        fromService:
+          type: web
+          name: docmind-frontend
+          envVarKey: RENDER_EXTERNAL_URL
+      - key: DB_SSL
+        value: "true"
+      - key: DB_SSL_CA
+        value: "/etc/ssl/certs/ca-certificates.crt"
+
+  - type: web
+    name: docmind-frontend
+    runtime: docker
+    rootDir: frontend
+    dockerfilePath: ./frontend/Dockerfile
+    dockerContext: ./frontend
+    envVars:
+      - key: REACT_APP_API_URL
+        fromService:
+          type: web
+          name: docmind-backend
+          envVarKey: RENDER_EXTERNAL_URL
+
+
