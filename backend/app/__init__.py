@@ -69,12 +69,15 @@ def create_app():
 
     db.init_app(app)
     migrate.init_app(app, db)
+    import re
     cors_origins = [
-        os.getenv("FRONTEND_URL", "http://localhost:3000"),
-        "https://qadocai.vercel.app",
-        "https://ai-doc-qa-neon.vercel.app",
-        "https://ai-doc-20fwqy16s-shyam2119s-projects.vercel.app",
+        re.compile(r"https://.*\.vercel\.app"),
+        re.compile(r"https://qadocai\.vercel\.app"),
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        os.getenv("FRONTEND_URL", ""),
     ]
+    cors_origins = [o for o in cors_origins if o]  # remove empty strings
     CORS(app, origins=cors_origins, supports_credentials=True)
 
     # Blueprints
