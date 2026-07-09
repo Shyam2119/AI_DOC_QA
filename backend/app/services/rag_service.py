@@ -98,14 +98,26 @@ class RAGService:
     def process_pdf(self, file_path: str, vector_store_path: str) -> Tuple[int, int]:
         print(f"[RAG] Loading PDF: {file_path}", flush=True)
         loader = PyPDFLoader(file_path)
-        pages = loader.load()
+        try:
+            pages = loader.load()
+        except Exception as e:
+            raise ValueError(f"Failed to read PDF: {str(e)}")
+
         page_count = len(pages)
+        if page_count == 0:
+            raise ValueError("The PDF contains no pages or is corrupt.")
+
         for i, page in enumerate(pages):
             page.metadata["page_number"] = i + 1
             page.metadata["source_file"] = Path(file_path).name
+
         chunks = self.text_splitter.split_documents(pages)
         chunk_count = len(chunks)
         print(f"[RAG] {page_count} pages → {chunk_count} chunks", flush=True)
+
+        if chunk_count == 0:
+            raise ValueError("The PDF contains no readable text. Scanned PDFs (images) or blank documents are not supported.")
+
         vs = FAISS.from_documents(chunks, self.embeddings)
         vs.save_local(vector_store_path)
         print(f"[RAG] ✅ Saved → {vector_store_path}", flush=True)
