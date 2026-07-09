@@ -76,7 +76,16 @@ class RAGService:
             encode_kwargs={"normalize_embeddings": True},
         )
         print("[RAG] ✅ Embeddings ready.", flush=True)
-        self._qa_pipeline = None   # lazy — loads on first factual question
+
+        # Eagerly load QA pipeline so first question is instant
+        print("[RAG] Loading QA model (tinyroberta-squad2)...", flush=True)
+        from transformers import pipeline as hf_pipeline
+        self._qa_pipeline = hf_pipeline(
+            "question-answering",
+            model="deepset/tinyroberta-squad2",
+            device=-1,
+        )
+        print("[RAG] ✅ QA model ready.", flush=True)
 
         self.text_splitter = RecursiveCharacterTextSplitter(
             chunk_size=500,
@@ -84,18 +93,6 @@ class RAGService:
             separators=["\n\n", "\n", ". ", " ", ""],
         )
 
-    # ── QA pipeline (extractive) ──────────────────────────────────────────────
-    def _get_qa(self):
-        if self._qa_pipeline is None:
-            print("[RAG] Loading QA model (tinyroberta-squad2)...", flush=True)
-            from transformers import pipeline as hf_pipeline
-            self._qa_pipeline = hf_pipeline(
-                "question-answering",
-                model="deepset/tinyroberta-squad2",
-                device=-1,
-            )
-            print("[RAG] ✅ QA model ready.", flush=True)
-        return self._qa_pipeline
 
     # ── PDF processing ────────────────────────────────────────────────────────
     def process_pdf(self, file_path: str, vector_store_path: str) -> Tuple[int, int]:

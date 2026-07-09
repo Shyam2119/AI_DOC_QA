@@ -1,8 +1,9 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import Sidebar from "./components/Sidebar";
 import ChatPanel from "./components/ChatPanel";
 import RightPanel from "./components/RightPanel";
 import { useSessions, useSession } from "./hooks/useSession";
+import { healthApi } from "./services/api";
 import "./styles/global.css";
 import "./App.css";
 
@@ -74,7 +75,21 @@ function ActiveSession({ sessionId }) {
 
 export default function App() {
   const [activeId, setActiveId] = useState(null);
+  const [warmingUp, setWarmingUp] = useState(false);
   const { sessions, loading, createSession, deleteSession, renameSession } = useSessions();
+
+  // Ping backend on page load to wake up Render free-tier instance
+  useEffect(() => {
+    let timer;
+    const ping = async () => {
+      timer = setTimeout(() => setWarmingUp(true), 3000); // show banner if slow
+      try { await healthApi.check(); } catch (_) {}
+      clearTimeout(timer);
+      setWarmingUp(false);
+    };
+    ping();
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleCreate = useCallback(async () => {
     const session = await createSession("New Session");
@@ -88,6 +103,12 @@ export default function App() {
 
   return (
     <div className="app-shell">
+      {warmingUp && (
+        <div className="warmup-banner">
+          <span className="warmup-dot" />
+          Waking up server… this takes ~30s on the free tier
+        </div>
+      )}
       <Sidebar
         sessions={sessions}
         activeId={activeId}

@@ -110,3 +110,31 @@
   padding: 3px 10px;
   border-radius: 20px;
 }
+
+/* Warm-up banner */
+.warmup-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: var(--amber-dim);
+  border-bottom: 1px solid var(--amber);
+  font-size: 0.78rem;
+  color: var(--amber);
+  font-family: var(--font-mono);
+}
+
+.warmup-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--amber);
+  animation: pulse 1.2s ease infinite;
+  flex-shrink: 0;
+}
