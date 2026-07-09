@@ -1,11 +1,8 @@
 """
-Run this script once to create the MySQL database and all tables.
+Database initialization script.
+- If DATABASE_URL is set (e.g., PostgreSQL on Render), uses SQLAlchemy directly.
+- If individual DB_* vars are set, creates the MySQL database first, then tables.
 Usage: python init_db.py
-
-This script:
-1. Reads DB credentials from .env
-2. Creates the database if it doesn't exist
-3. Creates all tables using SQLAlchemy models
 """
 import os
 import sys
@@ -13,18 +10,36 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+DATABASE_URL = os.getenv("DATABASE_URL", "")
+
+# Fix Heroku/Render postgres:// -> postgresql://
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+
+if DATABASE_URL:
+    # ── PostgreSQL (or any full DATABASE_URL) path ─────────────────────────────
+    print(f"DATABASE_URL detected. Using SQLAlchemy to initialise tables...")
+    print(f"  Driver: {DATABASE_URL.split(':')[0]}")
+    from app import create_app, db
+    app = create_app()
+    with app.app_context():
+        db.create_all()
+    print("✅ All database tables created successfully.")
+    sys.exit(0)
+
+# ── MySQL fallback path ────────────────────────────────────────────────────────
 DB_HOST = os.getenv("DB_HOST", "127.0.0.1")
 DB_PORT = int(os.getenv("DB_PORT", "3306"))
 DB_NAME = os.getenv("DB_NAME", "ai_doc_qa")
 DB_USER = os.getenv("DB_USER", "root")
 DB_PASSWORD = os.getenv("DB_PASSWORD", "")
 
-# Step 1: Create the database if it doesn't exist
 print(f"Connecting to MySQL at {DB_HOST}:{DB_PORT} as '{DB_USER}'...")
 try:
     import pymysql
+
     db_ssl_env = os.getenv("DB_SSL", "false").lower() == "true"
-    
+
     # Auto-enable SSL for TiDB Cloud hosts
     if not db_ssl_env and ".tidbcloud.com" in DB_HOST:
         print(f"  [AUTO] Detected TiDB Cloud host ({DB_HOST}). Enabling SSL...")
@@ -33,14 +48,10 @@ try:
     ssl_config = None
     if db_ssl_env:
         ca_path = os.getenv("DB_SSL_CA", "/etc/ssl/certs/ca-certificates.crt")
-        # Fallback for common CA paths if the default doesn't exist
-        if not os.path.exists(ca_path):
-            fallbacks = ["/etc/pki/tls/certs/ca-bundle.crt", "/etc/ssl/ca-bundle.pem"]
-            for fb in fallbacks:
-                if os.path.exists(fb):
-                    ca_path = fb
-                    break
-        
+        for fb in ["/etc/pki/tls/certs/ca-bundle.crt", "/etc/ssl/ca-bundle.pem"]:
+            if not os.path.exists(ca_path) and os.path.exists(fb):
+                ca_path = fb
+                break
         ssl_config = {"ca": ca_path}
         print(f"  [SSL] Using CA cert: {ca_path}")
 
@@ -71,7 +82,6 @@ except Exception as e:
     print(f"  DB_SSL={os.getenv('DB_SSL', 'false')}")
     sys.exit(1)
 
-# Step 2: Create all tables via SQLAlchemy
 from app import create_app, db
 
 app = create_app()
