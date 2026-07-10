@@ -144,14 +144,13 @@ class RAGService:
         return f"**Key points from the document:**\n\n{bullets}"
 
     def _answer_list(self, question: str, docs) -> str:
-        context = " ".join(d.page_content for d in docs)[:3000]
+        context = " ".join(d.page_content for d in docs)[:2000]
         # Try extractive QA first; if confidence low, return raw lines
         try:
-            result = self._get_qa()(question=question, context=context)
+            result = self._qa_pipeline(question=question, context=context)
             score = result.get("score", 0)
             if score > 0.1:
                 ans = result["answer"].strip()
-                # Try to split CSV / semicolons into bullets
                 if ',' in ans or ';' in ans:
                     items = re.split(r'[,;]', ans)
                     return "**Found items:**\n\n" + _bullet_format([i.strip() for i in items])
@@ -166,13 +165,12 @@ class RAGService:
 
     def _answer_factual(self, question: str, docs, history_context: str = "") -> str:
         context = history_context + " ".join(d.page_content for d in docs)
-        context = context[:3500]
-        result = self._get_qa()(question=question, context=context)
+        context = context[:2000]
+        result = self._qa_pipeline(question=question, context=context)
         score = result.get("score", 0)
         answer = result["answer"].strip()
         confidence = round(score * 100, 1)
         if score < 0.05 or not answer or len(answer) < 2:
-            # Fallback: return the most relevant chunk snippet
             fallback = _sentences(docs[0].page_content)
             if fallback:
                 return f"{fallback[0]}\n\n*(Extracted from document — confidence low)*"
@@ -199,8 +197,8 @@ class RAGService:
         return "**Contact Information:**\n\n" + "\n".join(lines)
 
     def _answer_count(self, question: str, docs) -> str:
-        context = " ".join(d.page_content for d in docs)[:3000]
-        result = self._get_qa()(question=question, context=context)
+        context = " ".join(d.page_content for d in docs)[:2000]
+        result = self._qa_pipeline(question=question, context=context)
         score = result.get("score", 0)
         if score > 0.05:
             return result["answer"].strip()
@@ -222,7 +220,7 @@ class RAGService:
 
         # Retrieve top chunks
         vs = self.merge_vector_stores(vector_store_paths)
-        retriever = vs.as_retriever(search_type="similarity", search_kwargs={"k": 6})
+        retriever = vs.as_retriever(search_type="similarity", search_kwargs={"k": 4})
         docs = retriever.invoke(question)
 
         # Build conversation history context (last 2 exchanges)
