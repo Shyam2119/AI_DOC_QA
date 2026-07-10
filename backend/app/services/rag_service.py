@@ -77,15 +77,8 @@ class RAGService:
         )
         print("[RAG] ✅ Embeddings ready.", flush=True)
 
-        # Eagerly load QA pipeline so first question is instant
-        print("[RAG] Loading QA model (tinyroberta-squad2)...", flush=True)
-        from transformers import pipeline as hf_pipeline
-        self._qa_pipeline = hf_pipeline(
-            "question-answering",
-            model="deepset/tinyroberta-squad2",
-            device=-1,
-        )
-        print("[RAG] ✅ QA model ready.", flush=True)
+        # Model loader placeholder (loaded dynamically to fit within 512MB RAM)
+        self._qa_pipeline = None
 
         self.text_splitter = RecursiveCharacterTextSplitter(
             chunk_size=500,
@@ -137,6 +130,27 @@ class RAGService:
             base.merge_from(self.load_vector_store(p))
         return base
 
+    def _run_qa(self, question: str, context: str) -> dict:
+        import gc
+        import torch
+        # Minimize PyTorch overhead
+        torch.set_num_threads(1)
+        
+        print("[RAG] Loading QA model (tinyroberta-squad2) dynamically...", flush=True)
+        from transformers import pipeline as hf_pipeline
+        qa = hf_pipeline(
+            "question-answering",
+            model="deepset/tinyroberta-squad2",
+            device=-1,
+        )
+        try:
+            print("[RAG] Running QA inference...", flush=True)
+            return qa(question=question, context=context)
+        finally:
+            del qa
+            gc.collect()
+            print("[RAG] QA model unloaded from memory.", flush=True)
+
     # ── Answer builders by type ───────────────────────────────────────────────
     def _answer_summary(self, docs) -> str:
         lines = []
@@ -149,7 +163,7 @@ class RAGService:
         context = " ".join(d.page_content for d in docs)[:2000]
         # Try extractive QA first; if confidence low, return raw lines
         try:
-            result = self._qa_pipeline(question=question, context=context)
+            result = self._run_qa(question=question, context=context)
             score = result.get("score", 0)
             if score > 0.1:
                 ans = result["answer"].strip()
@@ -168,7 +182,7 @@ class RAGService:
     def _answer_factual(self, question: str, docs, history_context: str = "") -> str:
         context = history_context + " ".join(d.page_content for d in docs)
         context = context[:2000]
-        result = self._qa_pipeline(question=question, context=context)
+        result = self._run_qa(question=question, context=context)
         score = result.get("score", 0)
         answer = result["answer"].strip()
         confidence = round(score * 100, 1)
@@ -200,7 +214,7 @@ class RAGService:
 
     def _answer_count(self, question: str, docs) -> str:
         context = " ".join(d.page_content for d in docs)[:2000]
-        result = self._qa_pipeline(question=question, context=context)
+        result = self._run_qa(question=question, context=context)
         score = result.get("score", 0)
         if score > 0.05:
             return result["answer"].strip()
