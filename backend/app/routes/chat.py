@@ -74,9 +74,12 @@ def ask(session_id):
         error_msg = Message(
             session_id=session_id,
             role="assistant",
-            content=f"Sorry, an error occurred while processing your question: {str(e)}",
+            content=f"⚠️ **Error:** {str(e)}",
             sources=[],
         )
         db.session.add(error_msg)
         db.session.commit()
-        return jsonify({"error": str(e), "message": error_msg.to_dict()}), 500
+        return jsonify({
+            "message": error_msg.to_dict(),
+            "user_message": user_msg.to_dict(),
+        }), 200

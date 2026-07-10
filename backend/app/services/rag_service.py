@@ -125,6 +125,8 @@ class RAGService:
 
     # ── Vector store helpers ──────────────────────────────────────────────────
     def load_vector_store(self, path: str) -> FAISS:
+        if not os.path.exists(path):
+            raise FileNotFoundError("The document's vector index was deleted from the server (this happens periodically on free-tier hosting restarts). Please delete and re-upload this document.")
         return FAISS.load_local(path, self.embeddings, allow_dangerous_deserialization=True)
 
     def merge_vector_stores(self, paths: List[str]) -> FAISS:
